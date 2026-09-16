@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: ml_training_purchase_propensity
+    description: >
+      Labeled training set for a purchase-propensity model, derived from ml_feature_visitor_item.
+      One row per (visitor, item) interaction; label_purchased is 1 if it converted to a
+      transaction.
+    columns:
+      - name: label_purchased
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]

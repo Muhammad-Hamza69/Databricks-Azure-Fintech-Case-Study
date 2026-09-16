@@ -1,0 +1,15 @@
+version: 2
+
+models:
+  - name: ml_feature_visitor_item
+    description: >
+      (visitor_id, item_id) grain feature table for a purchase-propensity model. Registered
+      with a Unity Catalog primary key constraint (visitor_id, item_id) via post-hook so it
+      qualifies as a proper Databricks Feature Engineering table.
+    columns:
+      - name: visitor_item_key
+        tests: [not_null, unique]
+      - name: visitor_id
+        tests: [not_null]
+      - name: item_id
+        tests: [not_null]

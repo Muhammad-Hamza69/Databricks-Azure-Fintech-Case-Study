@@ -1,0 +1,9 @@
+streamlit
+mlflow
+scikit-learn==1.4.2
+pandas
+azure-storage-file-datalake
+azure-identity
+databricks-sql-connector
+lightgbm==4.5.0
+xgboost==2.0.3

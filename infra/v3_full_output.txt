@@ -1,0 +1,20 @@
+--- cmd 2 ---
+Training rows: 4626, positives: 20 (0.43%)
+CAVEAT: only 20 positive examples - this is a demo-scale sample (producer was run with --max-rows 5000, not the full dataset). Metrics below are real but have wide confidence intervals; re-ingest the full CSVs for a production-grade model.
+
+--- cmd 3 ---
+Train: 3469 rows (15 positive) | Test: 1157 rows (5 positive)
+
+--- cmd 6 ---
+WARNING: no candidate passed both the degenerate-spread check and the stress test - falling back to the best PR-AUC among all candidates anyway, but its probabilities should not be trusted for individual predictions, only for coarse ranking.
+Best usable model by PR-AUC: logistic_regression_C0.001 (PR-AUC=0.0710, proba_std=0.0091, stress_gap=-0.1847) -> registering as clickstream.ml_models.purchase_propensity
+
+--- cmd 6 ---
+Registered model 'clickstream.ml_models.purchase_propensity' already exists. Creating a new version of this model...
+
+--- cmd 6 ---
+Registered clickstream.ml_models.purchase_propensity version 3 from run 41032275b4a4499babb664fda3bae976
+
+--- cmd 6 ---
+Created version '3' of model 'clickstream.ml_models.purchase_propensity'.
+

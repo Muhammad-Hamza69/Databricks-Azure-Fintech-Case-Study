@@ -1,0 +1,172 @@
+{
+  "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Resources/deployments/clickstream-databricks-deploy",
+  "location": null,
+  "name": "clickstream-databricks-deploy",
+  "properties": {
+    "correlationId": "e7f6ec6a-854f-4218-b24c-d21f97158660",
+    "debugSetting": null,
+    "dependencies": [
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Databricks/accessConnectors/clickstream-dbx-ac-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-dbx-ac-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Databricks/accessConnectors"
+          },
+          {
+            "apiVersion": "2023-05-01",
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Databricks/accessConnectors/clickstream-dbx-ac-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-dbx-ac-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Databricks/accessConnectors"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/providers/Microsoft.Authorization/roleAssignments/f94d4ff6-752f-5d73-8eae-d282f44a4ec4",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "f94d4ff6-752f-5d73-8eae-d282f44a4ec4",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      }
+    ],
+    "diagnostics": null,
+    "duration": "PT3M36.1886007S",
+    "error": null,
+    "extensions": [],
+    "mode": "Incremental",
+    "onErrorDeployment": null,
+    "outputResources": [
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Databricks/accessConnectors/clickstream-dbx-ac-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Databricks/accessConnectors"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Databricks/workspaces/clickstream-dbx-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Databricks/workspaces"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/providers/Microsoft.Authorization/roleAssignments/f94d4ff6-752f-5d73-8eae-d282f44a4ec4",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      }
+    ],
+    "outputs": {
+      "accessConnectorId": {
+        "type": "String",
+        "value": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Databricks/accessConnectors/clickstream-dbx-ac-yp6pon7lzod3o"
+      },
+      "accessConnectorPrincipalId": {
+        "type": "String",
+        "value": "d0781ee9-46d5-456b-89a5-9896e18c3747"
+      },
+      "workspaceId": {
+        "type": "String",
+        "value": "7405616477706025"
+      },
+      "workspaceName": {
+        "type": "String",
+        "value": "clickstream-dbx-yp6pon7lzod3o"
+      },
+      "workspaceUrl": {
+        "type": "String",
+        "value": "https://adb-7405616477706025.5.azuredatabricks.net"
+      }
+    },
+    "parameters": {
+      "bronzeStorageAccountName": {
+        "type": "String",
+        "value": "csbrzyp6pon7l"
+      },
+      "location": {
+        "type": "String",
+        "value": "centralus"
+      },
+      "namePrefix": {
+        "type": "String",
+        "value": "clickstream"
+      }
+    },
+    "parametersLink": null,
+    "providers": [
+      {
+        "id": null,
+        "namespace": "Microsoft.Databricks",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "accessConnectors",
+            "zoneMappings": null
+          },
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "workspaces",
+            "zoneMappings": null
+          }
+        ]
+      },
+      {
+        "id": null,
+        "namespace": "Microsoft.Authorization",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "roleAssignments",
+            "zoneMappings": null
+          }
+        ]
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "templateHash": "13410074105447397235",
+    "templateLink": null,
+    "timestamp": "2026-08-11T08:28:10.131920+00:00",
+    "validatedResources": null,
+    "validationLevel": null
+  },
+  "resourceGroup": "rg-clickstream-bronze",
+  "tags": null,
+  "type": "Microsoft.Resources/deployments"
+}

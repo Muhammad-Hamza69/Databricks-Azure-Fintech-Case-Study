@@ -1,0 +1,553 @@
+{
+  "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Resources/deployments/clickstream-infra-sync",
+  "location": null,
+  "name": "clickstream-infra-sync",
+  "properties": {
+    "correlationId": "693832d3-53e7-4f50-8ff1-9330d9a27c59",
+    "debugSetting": null,
+    "dependencies": [
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "csbrzyp6pon7l/default",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l/default",
+            "resourceType": "Microsoft.Storage/storageAccounts/blobServices"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default/containers/bronze",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "csbrzyp6pon7l/default/bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices/containers"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l/default",
+            "resourceType": "Microsoft.Storage/storageAccounts/blobServices"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default/containers/unity-catalog",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "csbrzyp6pon7l/default/unity-catalog",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices/containers"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Insights/components/clickstream-appi-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-appi-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Insights/components"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/serverfarms/clickstream-plan-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-plan-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Web/serverfarms"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csfuncyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csfuncyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "actionName": "listKeys",
+            "apiVersion": "2023-01-01",
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csfuncyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csfuncyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "apiVersion": "2020-02-02",
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Insights/components/clickstream-appi-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-appi-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Insights/components"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/sites/clickstream-func-yp6pon7lzod3o",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "clickstream-func-yp6pon7lzod3o",
+        "resourceType": "Microsoft.Web/sites"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/sites/clickstream-func-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-func-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Web/sites"
+          },
+          {
+            "apiVersion": "2023-01-01",
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/sites/clickstream-func-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-func-yp6pon7lzod3o",
+            "resourceType": "Microsoft.Web/sites"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/providers/Microsoft.Authorization/roleAssignments/f65c7ce4-d6c1-5e94-95b3-95d7364f5d7f",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "f65c7ce4-d6c1-5e94-95b3-95d7364f5d7f",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          },
+          {
+            "apiVersion": "2023-01-01-preview",
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/providers/Microsoft.Authorization/roleAssignments/baaba846-5269-5dfe-96a8-fcdfab8016cc",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "baaba846-5269-5dfe-96a8-fcdfab8016cc",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/events",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "clickstream-ehns-yp6pon7lzod3o/events",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/item-properties",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "clickstream-ehns-yp6pon7lzod3o/item-properties",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      },
+      {
+        "dependsOn": [
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "csbrzyp6pon7l",
+            "resourceType": "Microsoft.Storage/storageAccounts"
+          },
+          {
+            "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+            "resourceGroup": "rg-clickstream-bronze",
+            "resourceName": "clickstream-ehns-yp6pon7lzod3o",
+            "resourceType": "Microsoft.EventHub/namespaces"
+          }
+        ],
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/category-tree",
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceName": "clickstream-ehns-yp6pon7lzod3o/category-tree",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      }
+    ],
+    "diagnostics": null,
+    "duration": "PT7.4764394S",
+    "error": null,
+    "extensions": [],
+    "mode": "Incremental",
+    "onErrorDeployment": null,
+    "outputResources": [
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.EventHub/namespaces"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/category-tree",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/events",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/eventhubs/item-properties",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.EventHub/namespaces/eventhubs"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.EventHub/namespaces/clickstream-ehns-yp6pon7lzod3o/providers/Microsoft.Authorization/roleAssignments/f65c7ce4-d6c1-5e94-95b3-95d7364f5d7f",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Insights/components/clickstream-appi-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Insights/components"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default/containers/bronze",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices/containers"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/blobServices/default/containers/unity-catalog",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts/blobServices/containers"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csbrzyp6pon7l/providers/Microsoft.Authorization/roleAssignments/baaba846-5269-5dfe-96a8-fcdfab8016cc",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Authorization/roleAssignments"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Storage/storageAccounts/csfuncyp6pon7l",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Storage/storageAccounts"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/serverfarms/clickstream-plan-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Web/serverfarms"
+      },
+      {
+        "apiVersion": null,
+        "extension": null,
+        "id": "/subscriptions/387f2fde-0bc5-431f-8968-df9944b55fe2/resourceGroups/rg-clickstream-bronze/providers/Microsoft.Web/sites/clickstream-func-yp6pon7lzod3o",
+        "identifiers": null,
+        "resourceGroup": "rg-clickstream-bronze",
+        "resourceType": "Microsoft.Web/sites"
+      }
+    ],
+    "outputs": {
+      "bronzeContainerNameOut": {
+        "type": "String",
+        "value": "bronze"
+      },
+      "bronzeStorageAccountName": {
+        "type": "String",
+        "value": "csbrzyp6pon7l"
+      },
+      "eventHubNamespaceFqdn": {
+        "type": "String",
+        "value": "clickstream-ehns-yp6pon7lzod3o.servicebus.windows.net"
+      },
+      "functionAppDefaultHostName": {
+        "type": "String",
+        "value": "clickstream-func-yp6pon7lzod3o.azurewebsites.net"
+      },
+      "functionAppName": {
+        "type": "String",
+        "value": "clickstream-func-yp6pon7lzod3o"
+      }
+    },
+    "parameters": {
+      "eventHubThroughputUnits": {
+        "type": "Int",
+        "value": 1
+      },
+      "location": {
+        "type": "String",
+        "value": "centralus"
+      },
+      "namePrefix": {
+        "type": "String",
+        "value": "clickstream"
+      }
+    },
+    "parametersLink": null,
+    "providers": [
+      {
+        "id": null,
+        "namespace": "Microsoft.Storage",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "storageAccounts",
+            "zoneMappings": null
+          },
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "storageAccounts/blobServices",
+            "zoneMappings": null
+          },
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "storageAccounts/blobServices/containers",
+            "zoneMappings": null
+          }
+        ]
+      },
+      {
+        "id": null,
+        "namespace": "Microsoft.EventHub",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "namespaces",
+            "zoneMappings": null
+          },
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "namespaces/eventhubs",
+            "zoneMappings": null
+          }
+        ]
+      },
+      {
+        "id": null,
+        "namespace": "Microsoft.Insights",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "components",
+            "zoneMappings": null
+          }
+        ]
+      },
+      {
+        "id": null,
+        "namespace": "Microsoft.Web",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "serverfarms",
+            "zoneMappings": null
+          },
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              "centralus"
+            ],
+            "properties": null,
+            "resourceType": "sites",
+            "zoneMappings": null
+          }
+        ]
+      },
+      {
+        "id": null,
+        "namespace": "Microsoft.Authorization",
+        "providerAuthorizationConsentState": null,
+        "registrationPolicy": null,
+        "registrationState": null,
+        "resourceTypes": [
+          {
+            "aliases": null,
+            "apiProfiles": null,
+            "apiVersions": null,
+            "capabilities": null,
+            "defaultApiVersion": null,
+            "locationMappings": null,
+            "locations": [
+              null
+            ],
+            "properties": null,
+            "resourceType": "roleAssignments",
+            "zoneMappings": null
+          }
+        ]
+      }
+    ],
+    "provisioningState": "Succeeded",
+    "templateHash": "11264229670788828787",
+    "templateLink": null,
+    "timestamp": "2026-08-13T08:03:05.825470+00:00",
+    "validatedResources": null,
+    "validationLevel": null
+  },
+  "resourceGroup": "rg-clickstream-bronze",
+  "tags": null,
+  "type": "Microsoft.Resources/deployments"
+}

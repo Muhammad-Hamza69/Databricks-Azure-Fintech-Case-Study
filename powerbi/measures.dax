@@ -1,0 +1,67 @@
+// Power BI DAX measures for the clickstream gold-layer KPI dashboard.
+// Create each measure on the table it's grouped under (Table tools > New measure).
+// Every column referenced here matches the live clickstream.gold.* schemas.
+
+// ============================================================
+// Table: gold_daily_funnel
+// ============================================================
+
+Total Views = SUM(gold_daily_funnel[views])
+
+Total AddToCarts = SUM(gold_daily_funnel[addtocarts])
+
+Total Transactions = SUM(gold_daily_funnel[transactions])
+
+// unique_visitors is a per-day distinct count already computed in the gold model - summing it
+// across days double-counts visitors who returned on multiple days. Fine for a daily trend
+// chart, NOT a valid "total unique visitors over the period" figure - use
+// [Total Unique Visitors (all-time)] below for that instead.
+Total Daily Unique Visitors = SUM(gold_daily_funnel[unique_visitors])
+
+View to Purchase Rate = DIVIDE([Total Transactions], [Total Views])
+
+AddToCart Rate = DIVIDE([Total AddToCarts], [Total Views])
+
+// ============================================================
+// Table: gold_visitor_summary
+// (this is the correct source for a true all-time unique-visitor count, since it's already
+// one row per visitor)
+// ============================================================
+
+Total Unique Visitors (all-time) = COUNTROWS(gold_visitor_summary)
+
+Converted Visitors =
+CALCULATE(
+    COUNTROWS(gold_visitor_summary),
+    gold_visitor_summary[is_converted] = TRUE
+)
+
+Visitor Conversion Rate = DIVIDE([Converted Visitors], [Total Unique Visitors (all-time)])
+
+Avg Items Viewed per Visitor = AVERAGE(gold_visitor_summary[distinct_items_viewed])
+
+Avg Views per Visitor = AVERAGE(gold_visitor_summary[total_views])
+
+// ============================================================
+// Table: gold_item_performance
+// ============================================================
+
+Total Items = COUNTROWS(gold_item_performance)
+
+Available Items =
+CALCULATE(
+    COUNTROWS(gold_item_performance),
+    gold_item_performance[is_available] = TRUE
+)
+
+Available Item Rate = DIVIDE([Available Items], [Total Items])
+
+Avg Item Conversion Rate = AVERAGE(gold_item_performance[conversion_rate])
+
+// ============================================================
+// Table: gold_category_performance
+// ============================================================
+
+Total Categories = COUNTROWS(gold_category_performance)
+
+Avg Category Conversion Rate = AVERAGE(gold_category_performance[conversion_rate])

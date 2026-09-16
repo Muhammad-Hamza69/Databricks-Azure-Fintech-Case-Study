@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: gold_daily_funnel
+    description: Daily view/addtocart/transaction counts and view-to-purchase rate.
+    columns:
+      - name: event_date
+        tests: [not_null, unique]
+
+  - name: gold_item_performance
+    description: Per-item engagement and conversion, joined with its current category and availability.
+    columns:
+      - name: item_id
+        tests: [not_null, unique]
+
+  - name: gold_category_performance
+    description: Item performance rolled up to directly-tagged category (one level, not full ancestry).
+    columns:
+      - name: category_id
+        tests: [not_null, unique]
+
+  - name: gold_visitor_summary
+    description: Per-visitor engagement summary and purchase-conversion flag.
+    columns:
+      - name: visitor_id
+        tests: [not_null, unique]
+
+  - name: export_visitor_engagement_salesforce
+    description: >
+      Stable contract view over gold_visitor_summary for the Fivetran reverse-ETL sync into
+      Salesforce's standard Account object (see salesforce/README.md - synced onto Account rather
+      than a new custom object because the target org's Starter edition custom-object limit is
+      already used up by the platform's own Knowledge_kav object).
+    columns:
+      - name: visitor_id
+        tests: [not_null, unique]

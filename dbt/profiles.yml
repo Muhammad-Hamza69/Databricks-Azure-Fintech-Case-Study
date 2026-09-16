@@ -1,0 +1,11 @@
+clickstream:
+  target: dev
+  outputs:
+    dev:
+      type: databricks
+      catalog: clickstream
+      schema: silver
+      host: adb-7405616477706025.5.azuredatabricks.net
+      http_path: "/sql/1.0/warehouses/3ae0ca482ea10df2"
+      token: "{{ env_var('DATABRICKS_TOKEN') }}"
+      threads: 4

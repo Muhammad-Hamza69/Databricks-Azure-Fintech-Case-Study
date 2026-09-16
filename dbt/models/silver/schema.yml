@@ -1,0 +1,35 @@
+version: 2
+
+models:
+  - name: silver_events
+    description: Deduplicated, quality-filtered clickstream events. One row per (visitor, item, event, timestamp).
+    columns:
+      - name: visitor_id
+        tests: [not_null]
+      - name: item_id
+        tests: [not_null]
+      - name: event
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["view", "addtocart", "transaction"]
+
+  - name: silver_category_tree
+    description: Deduplicated category hierarchy, one row per category_id, self-referencing parents removed.
+    columns:
+      - name: category_id
+        tests: [not_null, unique]
+
+  - name: silver_item_properties_history
+    description: Deduplicated item-property changelog (one row per item/property/value/timestamp change).
+    columns:
+      - name: item_id
+        tests: [not_null]
+      - name: property
+        tests: [not_null]
+
+  - name: silver_item_properties_current
+    description: Latest known value per (item_id, property), derived from silver_item_properties_history.
+    columns:
+      - name: item_id
+        tests: [not_null]

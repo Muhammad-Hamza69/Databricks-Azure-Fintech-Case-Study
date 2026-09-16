@@ -1,0 +1,27 @@
+name: clickstream
+version: "1.0.0"
+config-version: 2
+
+profile: clickstream
+
+model-paths: ["models"]
+macro-paths: ["macros"]
+
+clean-targets:
+  - "target"
+  - "dbt_packages"
+
+models:
+  clickstream:
+    silver:
+      +schema: silver
+      +materialized: table
+    gold:
+      +schema: gold
+      +materialized: table
+    ml_feature:
+      +schema: ml_feature
+      +materialized: table
+    ml_training:
+      +schema: ml_training
+      +materialized: table

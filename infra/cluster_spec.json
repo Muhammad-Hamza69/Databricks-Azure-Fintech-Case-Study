@@ -1,0 +1,17 @@
+{
+  "cluster_name": "clickstream-dev-singlenode",
+  "spark_version": "16.4.x-scala2.12",
+  "node_type_id": "Standard_D2ads_v6",
+  "num_workers": 0,
+  "autotermination_minutes": 30,
+  "data_security_mode": "SINGLE_USER",
+  "single_user_name": "muhammadhamzasiddiqui883@gmail.com",
+  "spark_conf": {
+    "spark.master": "local[*]",
+    "spark.databricks.cluster.profile": "singleNode"
+  },
+  "custom_tags": {
+    "ResourceClass": "SingleNode",
+    "project": "clickstream-lakehouse"
+  }
+}

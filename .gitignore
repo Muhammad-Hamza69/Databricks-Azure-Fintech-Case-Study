@@ -1,0 +1,9 @@
+.env
+streamlit_app/streamlit.log
+
+# Terraform
+terraform/.terraform/
+terraform/.build/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfvars

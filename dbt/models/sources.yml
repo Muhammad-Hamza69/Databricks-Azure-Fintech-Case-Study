@@ -1,0 +1,15 @@
+version: 2
+
+sources:
+  - name: staging
+    catalog: clickstream
+    schema: staging
+    description: >
+      Typed Delta tables written directly by Auto Loader from ADLS Gen2 bronze
+      (Event Hubs Capture avro). This is the first queryable representation of
+      the source data - no cleaning or dedup yet, that's what the silver models
+      below do.
+    tables:
+      - name: events
+      - name: item_properties
+      - name: category_tree
