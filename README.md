@@ -350,6 +350,7 @@ The local pipeline has no continuous scheduler for dbt or training. Auto Loader 
 
 ## Further documentation
 
+- [Vivan case study and wiki source](wiki/Case-Study-Blog.md): business context, data centralization, architecture, analytics, and purchase-propensity modeling. [Wiki publishing instructions](wiki/README.md).
 - [Pipeline usage and recorded verification](PIPELINE.md)
 - [Streamlit application and model history](streamlit_app/README.md)
 - [Salesforce activation setup and mappings](salesforce/README.md)
