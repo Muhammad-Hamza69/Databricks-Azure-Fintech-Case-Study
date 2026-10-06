@@ -1,6 +1,14 @@
 .env
 streamlit_app/streamlit.log
 
+# Large source datasets stay local; download instructions are in README.md.
+/events.csv
+/item_properties_part1.csv
+/item_properties_part2.csv
+
+# Local backup used when cleaning unpublished Git history.
+/.git-recovery/
+
 # Terraform
 terraform/.terraform/
 terraform/.build/

@@ -87,6 +87,10 @@ The root also includes PowerPoint presentations and scripts for generating or re
 
 ## Source data and ingestion
 
+Download the source files from the [RetailRocket recommender system dataset on Kaggle](https://www.kaggle.com/datasets/retailrocket/ecommerce-dataset), extract them, and place `events.csv`, `item_properties_part1.csv`, and `category_tree.csv` in the repository root. Kaggle may require sign-in to download the dataset. The producers resolve these paths from their own location, so no path configuration is needed.
+
+The large events and item-property CSVs are excluded from Git and must be downloaded separately after cloning. Existing local copies remain available to the pipeline. `category_tree.csv` is small enough to be included in the repository. The current producer uses `item_properties_part1.csv`; the dataset's second item-property part is not ingested by that script.
+
 | File | Source / Event Hub | CSV columns |
 |---|---|---|
 | `events.csv` | `events` | `timestamp`, `visitorid`, `event`, `itemid`, `transactionid` |
