@@ -2,6 +2,8 @@
 
 This directory contains the source for the project's GitHub wiki:
 
+Published pages: [Wiki Home](https://github.com/Muhammad-Hamza69/Databricks-Azure-Fintech-Case-Study/wiki) · [Vivan Case Study Blog](https://github.com/Muhammad-Hamza69/Databricks-Azure-Fintech-Case-Study/wiki/Case-Study-Blog).
+
 | File | Published role |
 |---|---|
 | [Home.md](Home.md) | Wiki landing page |
