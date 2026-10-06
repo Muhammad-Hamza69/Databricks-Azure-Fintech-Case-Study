@@ -1,301 +1,353 @@
 # Clickstream Lakehouse
 
-Implements the architecture in `Architecture.png`. To run the ingestion-through-training portion
-end-to-end with one command instead of five manual steps, see `PIPELINE.md`
-(`python run_pipeline.py`).
+An Azure and Databricks lakehouse that turns e-commerce clickstream activity into analytics tables, Salesforce visitor profiles, and a purchase-propensity application. The project covers ingestion, data cleaning, business metrics, feature engineering, model comparison, probability calibration, and local scoring through Streamlit.
 
+The source is the RetailRocket dataset. Historical CSVs can be replayed through the ingestion service, while a Faker-based generator produces new synthetic activity for repeated pipeline runs.
+
+## Architecture
+
+![Clickstream Lakehouse architecture: Azure ingestion, Databricks and dbt transformations, Power BI, Fivetran and Salesforce, MLflow training, and Streamlit scoring](ululul.png)
+
+[Open the full-size architecture diagram](ululul.png).
+
+```text
+RetailRocket CSVs / synthetic events
+    -> Python producers
+    -> Azure Function: POST /api/ingest/{source}
+    -> Azure Event Hubs
+    -> ADLS Gen2 Bronze: captured Avro files
+    -> Databricks Auto Loader
+    -> clickstream.staging: typed Delta tables
+    -> dbt -> clickstream.silver: cleaned, deduplicated data
+        |
+        +-> clickstream.gold
+        |       +-> Power BI connection and dashboard specification
+        |       +-> Salesforce export view -> Fivetran Activations -> Salesforce Account
+        |
+        +-> clickstream.ml_feature
+                -> clickstream.ml_training
+                -> scikit-learn / XGBoost / LightGBM + MLflow
+                -> isotonic calibration
+                -> clickstream.ml_models.purchase_propensity
+                -> Streamlit: ranked visitor-item purchase probabilities
 ```
-CSV (local)  ->  Python producer  ->  Azure Function  ->  Event Hubs  ->  ADLS Gen2 (Bronze)
-                                                                              |
-                                                                      Auto Loader (Databricks)
-                                                                              v
-                                                                   Unity Catalog: clickstream.staging
-                                                                              |
-                                                                        dbt (dbt-databricks)
-                                                                              v
-                                                                   Unity Catalog: clickstream.silver
-                                                                              |
-                                                                        dbt (dbt-databricks)
-                                                            +-----------------+-----------------+
-                                                            v                                   v
-                                                 Unity Catalog: clickstream.gold      clickstream.ml_feature
-                                                        |                   |                    |
-                                                        v                   v                    v
-                                                   Power BI            Fivetran         clickstream.ml_training
-                                                                            |                     |
-                                                                            v                     v
-                                                                       Salesforce      scikit-learn + MLflow
-                                                                                                   |
-                                                                                                   v
-                                                                                        clickstream.ml_models
+
+Unity Catalog governs the Delta tables, model registry, and Databricks storage access. Auto Loader uses `trigger(availableNow=True)` to drain available captured files and stop; its configured job runs every 30 minutes. The full pipeline is launched on demand with [run_pipeline.py](run_pipeline.py).
+
+## What the project delivers
+
+| Component | Implementation |
+|---|---|
+| Ingestion | Three source-specific Event Hubs, an HTTP Azure Function, CSV replay, synthetic events, and Avro Capture to ADLS Gen2 |
+| Lakehouse | Staging tables and 12 dbt models across Silver, Gold, ML Feature, and ML Training, with 25 declared data-quality tests |
+| Analytics | Daily funnel, item performance, category performance, and visitor engagement marts |
+| Salesforce | Stable export view and documented Fivetran upsert into the standard `Account` object |
+| Machine learning | Ten candidates from six algorithm families, MLflow tracking, isotonic calibration, and Unity Catalog registration |
+| Streamlit | Local application that loads a registered model and scores up to 20,000 unconverted visitor-item interactions |
+| Power BI | Connection instructions, DAX measures, and a two-page dashboard specification; a finished `.pbix` report is not included |
+| Infrastructure | Original Bicep templates and a Terraform recovery workflow, with fresh-deployment prerequisites listed below |
+
+Recorded results describe earlier runs, rather than a live health check of the deployment:
+
+- Full-data training is documented with **2,144,652 training rows** and **20,743 positive labels**. Calibrated LightGBM achieved approximately **0.395 PR-AUC**.
+- The initial Salesforce activation is documented with **3,862 successful records**, **0 invalid**, and **0 rejected** records.
+- [PIPELINE.md](PIPELINE.md) records a run on **2026-08-27**: **12/12 dbt models built**, **25/25 tests passed**, and model **version 9** registered, in **38.4 minutes**. The model-history documentation explains the calibration changes introduced in version 7.
+
+## Repository structure
+
+```text
+.
+|-- README.md                         Project overview and setup
+|-- ululul.png                        Architecture diagram
+|-- PIPELINE.md                       Pipeline options and recorded verification
+|-- run_pipeline.py                   Ingest -> Auto Loader -> dbt -> train -> UI
+|-- deploy.sh                         Terraform recovery and pipeline launch
+|-- events.csv                        Historical clickstream events
+|-- item_properties_part1.csv          Item-property history
+|-- category_tree.csv                 Category hierarchy
+|-- producer/                         CSV replay and Faker event producers
+|-- ingestion_function/               Azure Functions ingestion service
+|-- databricks/
+|   |-- notebooks/                    Auto Loader, training, legacy diagnostics
+|   `-- jobs/                         On-demand training job submission JSON
+|-- dbt/
+|   |-- models/silver/                Cleaning and current item attributes
+|   |-- models/gold/                  Analytics marts and Salesforce export
+|   |-- models/ml_feature/            Visitor-item features
+|   |-- models/ml_training/           Binary purchase labels
+|   `-- macros/                       Unity Catalog schema naming
+|-- streamlit_app/                    Purchase-propensity UI and model history
+|-- powerbi/                          Connection guide and DAX measures
+|-- salesforce/                       Fivetran setup and Salesforce field mapping
+|-- infra/                            Bicep, job specifications, and run exports
+`-- terraform/                        Azure and Databricks recovery configuration
 ```
 
-Source data is the RetailRocket clickstream dataset (`events.csv`, `item_properties_part1.csv`,
-`category_tree.csv`) at the repo root, replayed as a simulated live stream rather than bulk-loaded.
+The root also includes PowerPoint presentations and scripts for generating or rendering presentation and standee assets. These are supporting materials, separate from the data pipeline.
 
-## Resources (resource group: `rg-clickstream-bronze`, centralus)
+## Source data and ingestion
 
-| Resource | Name | Purpose |
+| File | Source / Event Hub | CSV columns |
 |---|---|---|
-| Storage (ADLS Gen2) | `csbrzyp6pon7l` | `bronze` container = raw Event Hubs Capture landing; `unity-catalog` container = Unity Catalog managed table storage |
-| Storage (StorageV2) | `csfuncyp6pon7l` | Function App runtime storage (must be non-HNS) |
-| Event Hubs namespace | `clickstream-ehns-yp6pon7lzod3o` | Hubs: `events`, `item-properties`, `category-tree` - Standard tier, Capture enabled (Avro, 5 min/300 MB) |
-| Function App | `clickstream-func-yp6pon7lzod3o` | Python HTTP function `POST /api/ingest/{source}` - forwards batches to Event Hubs via managed identity |
-| Application Insights | `clickstream-appi-yp6pon7lzod3o` | Function App telemetry |
-| Databricks workspace | `clickstream-dbx-yp6pon7lzod3o` | `https://adb-7405616477706025.5.azuredatabricks.net` - Premium, Unity Catalog auto-enabled |
-| Access Connector | `clickstream-dbx-ac-yp6pon7lzod3o` | Managed identity Databricks uses to read/write the bronze storage account (no keys/SAS) |
+| `events.csv` | `events` | `timestamp`, `visitorid`, `event`, `itemid`, `transactionid` |
+| `item_properties_part1.csv` | `item-properties` | `timestamp`, `itemid`, `property`, `value` |
+| `category_tree.csv` | `category-tree` | `categoryid`, `parentid` |
 
-IaC lives in `infra/main.bicep` (bronze/Function/Event Hubs) and `infra/databricks.bicep`
-(workspace + Access Connector).
+Events use `view`, `addtocart`, and `transaction`. Item IDs are anonymized; the application displays numeric IDs because product names are unavailable. The named properties `categoryid` and `available` supply item category and availability.
 
-## Unity Catalog layout
+[stream_clickstream.py](producer/stream_clickstream.py) sends paced CSV batches. [generate_fake_events.py](producer/generate_fake_events.py) samples existing visitor and item IDs, mixes in approximately 30% newly generated visitor IDs, and generates timestamps within the trailing 24 hours. Its configured event mix is approximately 96.67% views, 2.52% cart additions, and 0.82% transactions.
 
-Catalog `clickstream`, storage rooted at `abfss://unity-catalog@csbrzyp6pon7l.dfs.core.windows.net/clickstream`:
+The [Azure Function](ingestion_function/function_app.py) accepts a non-empty `records` array and an optional `batch_id`. It adds ingestion time, source, and batch metadata, then sends records to the selected Event Hub using managed identity. Producers retry failed requests with backoff; Silver removes duplicate business events.
 
-- **`clickstream.staging`** - `events`, `item_properties`, `category_tree`. Written directly by
-  Auto Loader from the bronze Avro capture files: typed columns (bigint/timestamp casts applied
-  from the JSON-string payload), no cleaning or dedup. This is the first queryable Delta
-  representation of the source data - there's no separate "raw" schema, Auto Loader lands
-  straight into staging.
-- **`clickstream.silver`** - `silver_events`, `silver_category_tree`,
-  `silver_item_properties_history`, `silver_item_properties_current`. Built by dbt on top of
-  `staging`: deduplicated, quality-filtered (not-null keys, valid event types, no self-referencing
-  categories), conformed types. 9 dbt tests cover not-null/uniqueness/accepted-values.
-- **`clickstream.gold`** - business-level marts built by dbt on top of silver:
-  - `gold_daily_funnel` - daily view/addtocart/transaction counts and view-to-purchase rate
-  - `gold_item_performance` - per-item engagement + conversion rate, joined with current
-    category and availability (pivoted from `silver_item_properties_current`)
-  - `gold_category_performance` - item performance rolled up to directly-tagged category
-    (one level, not full ancestry)
-  - `gold_visitor_summary` - per-visitor engagement totals and a purchase-conversion flag
-  - `export_visitor_engagement_salesforce` - a thin view over `gold_visitor_summary`, the stable
-    contract the Fivetran reverse-ETL sync reads from (see "Gold -> Fivetran -> Salesforce" below)
-- **`clickstream.ml_feature`** - `ml_feature_visitor_item`: a `(visitor_id, item_id)`-grain
-  feature table (view/addtocart counts, recency, item category/availability) for a
-  purchase-propensity model. Registered with a Unity Catalog **primary key constraint**
-  `(visitor_id, item_id)` via a dbt post-hook, so it's a genuine Databricks Feature Engineering
-  table, not just a Delta table. Deliberately excludes transaction counts as a feature to avoid
-  label leakage.
-- **`clickstream.ml_training`** - `ml_training_purchase_propensity`: labeled training set built
-  from `ml_feature_visitor_item` - one row per (visitor, item) that had a view or add-to-cart,
-  `label_purchased` (0/1) derived from whether it converted to a transaction. No trained model is
-  built here; the architecture diagram stops at "ML Training Dataset," so that's where this does
-  too.
-- **`clickstream.ml_models`** - `purchase_propensity`: the registered Unity Catalog model
-  trained on `ml_training_purchase_propensity` (see "ML model" below).
-- Storage access is via a Unity Catalog storage credential (`clickstream_bronze_credential`,
-  backed by the Access Connector's managed identity) and two external locations
-  (`clickstream_bronze` for reads off the bronze container, `clickstream_managed` for the
-  catalog's managed table storage) - no account keys or SAS tokens anywhere in the pipeline.
+Event Hubs Capture is configured for Avro output with a 300-second / 300 MB capture window. Files land under `bronze/<source>/YYYY/MM/DD/HH/`. A successful HTTP ingestion response does not mean the capture files are already available to Auto Loader.
 
-## Running the ingestion (Bronze)
+## Unity Catalog and dbt models
 
-```
-cd producer
-pip install -r requirements.txt
-python stream_clickstream.py --source events --ingest-url https://clickstream-func-yp6pon7lzod3o.azurewebsites.net \
-    --function-key <function key> --max-rows 5000 --rate 200   # quick demo sample
-python stream_clickstream.py --source item-properties ...
-python stream_clickstream.py --source category-tree ...
+The catalog is `clickstream`. Bronze contains captured files in storage; Staging is their first queryable Delta representation.
+
+| Schema | Tables / views | Purpose |
+|---|---|---|
+| `staging` | `events`, `item_properties`, `category_tree` | Auto Loader parses JSON from Avro `Body`, casts fields, and retains Event Hubs metadata; cleaning happens downstream |
+| `silver` | `silver_events`, `silver_category_tree`, `silver_item_properties_history`, `silver_item_properties_current`, `int_item_attributes` | Quality filtering, deduplication, category cleanup, item-property history, and latest item attributes; `int_item_attributes` is a view |
+| `gold` | `gold_daily_funnel`, `gold_item_performance`, `gold_category_performance`, `gold_visitor_summary`, `export_visitor_engagement_salesforce` | Business marts and a stable Salesforce export view |
+| `ml_feature` | `ml_feature_visitor_item` | One row per `(visitor_id, item_id)`, with a Unity Catalog primary-key constraint applied by dbt post-hooks |
+| `ml_training` | `ml_training_purchase_propensity` | Pairs with a view or cart addition, and binary `label_purchased` |
+| `ml_models` | `purchase_propensity` | Registered MLflow model versions, rather than a dbt table |
+
+The 12 dbt models comprise **10 tables and 2 views**. Tests cover not-null columns, unique keys, valid event types, and binary labels. [generate_schema_name.sql](dbt/macros/generate_schema_name.sql) routes models directly to their configured schemas.
+
+Key transformation details:
+
+- Event deduplication uses `(visitor_id, item_id, event, event_ts, transaction_id)` and keeps the most recently ingested copy.
+- Current item properties select the latest change per `(item_id, property)`.
+- Category performance rolls up to the directly assigned category, rather than recursively through the hierarchy.
+- Feature recency uses the **maximum event timestamp in the dataset**, rather than wall-clock time.
+- The feature table retains `transaction_count` for labels, candidate filtering, and purchase-history reporting. Model inputs exclude it.
+- `gold_visitor_summary.distinct_items_viewed` counts distinct items across all event types. Summing daily unique-visitor counts does not produce a distinct multi-day count; the Power BI measures provide an all-time count from the visitor mart.
+
+## Local setup
+
+These commands use **PowerShell** and assume the Azure resources, Unity Catalog objects, captured data, and Databricks notebooks already exist. Read the infrastructure section before using a fresh workspace.
+
+Requirements:
+
+- Python **3.11** for the local environment; the Azure Function is also configured for Python 3.11.
+- Azure CLI and Databricks CLI on `PATH`. Pipeline job commands use Azure CLI authentication.
+- A Databricks personal access token for dbt/Streamlit and an Azure Function ingestion key.
+- Access to the SQL warehouse, catalog, model registry, and configured job clusters.
+
+From the repository root:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r producer/requirements.txt -r dbt/requirements.txt -r streamlit_app/requirements.txt
+
+az login
+$env:DATABRICKS_HOST = "https://adb-7405616477706025.5.azuredatabricks.net"
+$env:DATABRICKS_AUTH_TYPE = "azure-cli"
 ```
 
-The pipeline has actually been run end-to-end against the **full** `events.csv` (2,756,101
-rows, all 22,457 real transactions - omit `--max-rows` for this) and a 500,000-row
-`item-properties` sample, not just the demo sample above - see "ML Training Dataset ->
-propensity model" below. Event Hubs was temporarily scaled to 4 throughput units for that bulk
-backfill (`az eventhubs namespace update --capacity 4`) and scaled back to 1 afterward
-(`--capacity 1`) to avoid ongoing extra cost - do the same for any future full-scale re-ingestion,
-since 1 TU caps out around 1,000 events/sec.
+Create or update a root `.env` with your values, without quotes around them:
 
-Get the function key with:
-```
-az functionapp keys list --name clickstream-func-yp6pon7lzod3o --resource-group rg-clickstream-bronze
+```dotenv
+DATABRICKS_TOKEN=<your-databricks-personal-access-token>
+INGEST_FUNCTION_KEY=<your-azure-function-key>
 ```
 
-Event Hubs Capture lands Avro files under `bronze/<source>/YYYY/MM/DD/HH/` within ~5 minutes.
+`run_pipeline.py` loads this file without overriding existing environment variables. `.env` is ignored by Git. Direct producer, dbt, and Streamlit commands do **not** use this loader; set their variables in the shell:
 
-## Bronze -> staging (Auto Loader)
-
-Notebook: `databricks/notebooks/autoloader_bronze_to_staging.py`
-(`/Workspace/Shared/clickstream/autoloader_bronze_to_staging` in the workspace).
-
-Runs on a schedule via Databricks Job **`clickstream-bronze-to-staging`** (job id
-`614669053635065`), every 30 minutes, on an ephemeral single-node job cluster
-(`Standard_D2ads_v6`, terminates after each run). Each run uses `trigger(availableNow=True)` so
-it drains whatever new capture files exist since the last checkpoint and stops - safe to run on a
-schedule without an always-on cluster.
-
-To run it manually instead of waiting for the schedule:
+```powershell
+$env:DATABRICKS_TOKEN = "<your-databricks-personal-access-token>"
+$env:INGEST_FUNCTION_KEY = "<your-azure-function-key>"
 ```
+
+Deployment-specific values stored in the repository:
+
+| Setting | Repository value |
+|---|---|
+| Resource group / region | `rg-clickstream-bronze` / `centralus` |
+| Workspace hostname | `adb-7405616477706025.5.azuredatabricks.net` |
+| SQL warehouse HTTP path | `/sql/1.0/warehouses/3ae0ca482ea10df2` |
+| Ingestion base URL | `https://clickstream-func-yp6pon7lzod3o.azurewebsites.net` |
+| Bronze storage account | `csbrzyp6pon7l` |
+| Auto Loader job ID | `614669053635065` |
+
+These identify the recorded deployment. Update the corresponding files for another workspace; setting `DATABRICKS_HOST` alone does not override the constants in `run_pipeline.py` or connection fields in `dbt/profiles.yml`.
+
+## Run the pipeline
+
+For an initialized deployment:
+
+```powershell
+python run_pipeline.py
+```
+
+The default run:
+
+1. Generates and ingests **2,000 new synthetic events**.
+2. Triggers Auto Loader and waits for completion.
+3. Runs `dbt run` followed by `dbt test`.
+4. Submits model training and waits for completion and registration.
+5. Attempts a Fivetran sync only when `--trigger-fivetran` is supplied.
+6. Restarts Streamlit on port **8501**, logging to `streamlit_app/streamlit.log`.
+
+```powershell
+# Generate more synthetic activity
+python run_pipeline.py --count 10000
+
+# Replay a historical events sample
+python run_pipeline.py --replay-csv --max-rows 5000 --rate 200
+
+# Rebuild dbt outputs from available Bronze files, without training or restarting the UI
+python run_pipeline.py --skip-ingestion --skip-training --skip-streamlit
+```
+
+Default ingestion and replay modes send **events only**. They do not bootstrap item properties or the category hierarchy. For an initial dataset load, replay all three sources explicitly:
+
+```powershell
+$ingestUrl = "https://clickstream-func-yp6pon7lzod3o.azurewebsites.net"
+python producer/stream_clickstream.py --source events --ingest-url $ingestUrl --function-key $env:INGEST_FUNCTION_KEY --max-rows 5000 --rate 200
+python producer/stream_clickstream.py --source item-properties --ingest-url $ingestUrl --function-key $env:INGEST_FUNCTION_KEY --max-rows 500000 --rate 200
+python producer/stream_clickstream.py --source category-tree --ingest-url $ingestUrl --function-key $env:INGEST_FUNCTION_KEY --rate 200
+```
+
+Omit `--max-rows` to replay an entire source. The small events sample checks ingestion; it does not reproduce the documented full-data model metrics. Wait for Capture files to land before starting downstream processing:
+
+```powershell
+python run_pipeline.py --skip-ingestion
+```
+
+The orchestrator has no explicit Capture wait or freshness check. An immediate Auto Loader run can finish while newly posted events are still waiting to be captured. Repeat downstream processing after the files appear if needed.
+
+On Windows, restarting Streamlit attempts to force-stop any process listening on the selected port. Use `--skip-streamlit` to leave it alone, or choose `--streamlit-port <port>`. Training runs on every pipeline execution unless `--skip-training` is supplied. See [PIPELINE.md](PIPELINE.md) for all options.
+
+## Run individual components
+
+### Auto Loader
+
+[autoloader_bronze_to_staging.py](databricks/notebooks/autoloader_bronze_to_staging.py) reads all three sources, appends managed Delta tables, and stores schema/checkpoint state under `/Volumes/clickstream/staging/checkpoints`.
+
+```powershell
 databricks jobs run-now 614669053635065
 ```
 
-## Staging -> silver (dbt)
+The configured job uses a single-node `Standard_D2ads_v6` cluster and Databricks Runtime `16.4.x-scala2.12`. It stops after draining available capture files.
 
-```
-cd dbt
-pip install -r requirements.txt
-export DATABRICKS_TOKEN=<personal access token>   # databricks tokens create --lifetime-seconds 86400
+### dbt transformations and checks
+
+```powershell
+Push-Location dbt
+dbt debug --profiles-dir .
 dbt run --profiles-dir .
 dbt test --profiles-dir .
+Pop-Location
 ```
 
-`profiles.yml` points at the workspace's built-in Serverless Starter Warehouse
-(`3ae0ca482ea10df2`) rather than the dev cluster, so `dbt run` doesn't depend on any
-interactive cluster being up.
+[profiles.yml](dbt/profiles.yml) reads `DATABRICKS_TOKEN` and connects to the configured SQL warehouse. These commands build Silver, Gold, ML Feature, and ML Training; model fitting happens separately.
 
-## Gold -> Power BI
+### Model training
 
-Not an automated step - Power BI Desktop is a GUI app with no scriptable way to author report
-visuals. `powerbi/README.md` has the connection details (Databricks connector, Import mode,
-same Serverless Starter Warehouse as dbt) and a two-page layout spec; `powerbi/measures.dax`
-has copy-paste DAX measures for every KPI (view/addtocart/transaction totals, view-to-purchase
-rate, visitor conversion rate, item/category conversion). Every column referenced was
-cross-checked against the live `clickstream.gold.*` schemas. A layout wireframe was published
-as an artifact during the build for visual reference.
-
-## Gold -> Fivetran -> Salesforce (reverse ETL)
-
-**Built and verified.** Fivetran Activations syncs `clickstream.gold.export_visitor_engagement_salesforce`
-(a dbt view, decoupled from `gold_visitor_summary` so the sync has a stable contract) into
-Salesforce's standard **Account** object - one visitor = one Account record (e.g. "Visitor
-629333"), upserted on a `Visitor_Id__c` external-ID field. Runs on a daily schedule (09:00 UTC).
-
-Initial sync: **3,862/3,862 records successful, 0 rejected, 0 invalid**, in 4 minutes -
-spot-checked against the source and every field matched exactly.
-
-Full as-built details in `salesforce/README.md`, including two things that changed from the
-original plan once real constraints showed up: the target had to become the standard Account
-object with 8 custom fields instead of a dedicated `Visitor_Engagement__c` custom object,
-because the org's Salesforce Starter edition had already used up its custom-object quota on the
-platform's own `Knowledge_kav` object; and the Salesforce OAuth grant itself had to be done by a
-human in a browser (same as the Power BI OAuth step) - not something I could complete from this
-session, since there's no browser tool available here.
-
-## ML Training Dataset -> propensity model
-
-Notebook: `databricks/notebooks/train_purchase_propensity.py`
-(`/Workspace/Shared/clickstream/train_purchase_propensity` in the workspace). Run once via
-`databricks jobs submit` on an ephemeral ML-runtime job cluster (`16.4.x-cpu-ml-scala2.12`,
-`Standard_D2ads_v6`, single-node) - not on a recurring schedule like the Auto Loader job, since
-retraining on demand makes more sense than every 30 minutes for this dataset size.
-
-Trains 10 candidates across 6 algorithm families - Logistic Regression (4 regularization
-strengths), Random Forest (2 depths), Extra Trees, XGBoost, LightGBM, and Naive Bayes - on
-`clickstream.ml_training.ml_training_purchase_propensity`, logs every one to MLflow (experiment
-`/Shared/clickstream/purchase_propensity`), and only registers a candidate to Unity Catalog as
-`clickstream.ml_models.purchase_propensity` if it passes two checks beyond PR-AUC: a
-non-degenerate probability spread, and an explicit stress test (a hand-built "clearly
-disengaged" vs. "clearly engaged" example must score in the correct direction with a real gap
-between them) - PR-AUC alone doesn't catch a model whose actual probability output is
-saturated or inverted, which earlier versions were.
-
-`item_category_id` is deliberately **not** a model feature - it's a nominal ID with no real
-ordering, and feeding it in as a raw number caused early versions to learn nonsense from it
-given too little data to properly encode it. It's excluded, not the model - `ml_feature`/
-`ml_training` still carry it for reporting.
-
-**Currently registered: version 7 - calibrated LightGBM.** LightGBM won the 10-candidate
-comparison (PR-AUC 0.392, narrowly beating XGBoost 0.389 and Random Forest 0.389 in a genuine
-three-way near-tie), but its raw `predict_proba` output - like every version before it - was
-not an honest probability: an independent check showed rows scored 90-100% only converted
-~31% of the time in reality. v7 wraps the winner in `CalibratedClassifierCV` (isotonic
-regression, 5-fold), which fixed this for real: predicted vs. actual now match closely across
-every score band (e.g. 34.9% predicted -> 35.5% actual), and the model's maximum output across
-the entire real candidate pool is now 84% - it can no longer claim 99% for anything, because
-that was never true. PR-AUC after calibration: 0.395 (calibration didn't cost any ranking
-quality). See `streamlit_app/README.md` for the full comparison table, the calibration check,
-and the version-by-version history of what broke and why at each stage - it's a real account
-of iterating on a model, not just a final number.
-
-Loading a LightGBM/XGBoost-based model outside Databricks (e.g. the Streamlit app running
-locally) needs the matching `lightgbm`/`xgboost` packages installed locally too, pinned to the
-same versions as the Databricks ML runtime - already handled in `streamlit_app/requirements.txt`.
-
-To retrain:
-```
-databricks jobs submit --json @databricks/jobs/train_purchase_propensity_submit.json
+```powershell
+databricks jobs submit --json "@databricks/jobs/train_purchase_propensity_submit.json"
 ```
 
-## Model -> Streamlit app
+The [submission specification](databricks/jobs/train_purchase_propensity_submit.json) references `/Workspace/Shared/clickstream/train_purchase_propensity`, ML runtime `16.4.x-cpu-ml-scala2.12`, and a deployment-specific single-user identity. Update that identity and upload the notebook for your workspace.
 
-`streamlit_app/app.py` - a UI on top of the registered model. Queries
-`clickstream.ml_feature.ml_feature_visitor_item` for real (visitor, item) pairs that were
-viewed/added-to-cart but never bought (pre-filtered in SQL to the top 20,000 by
-add-to-cart/view activity - the full pool is 2.1M+ rows at current data scale), scores every
-one with the model, and shows a ranked table: Name, View Count, Add-to-Cart Count, Days Since
-Last Interaction, Previously Purchased Item Count, Item Name (item ID - no real product names
-in this dataset), Score, Percentile, and Meaning (a plain-language bucket derived from
-percentile rank). Always loads the latest registered model version automatically.
+### Streamlit application
 
-```
-cd streamlit_app
-pip install -r requirements.txt
-export DATABRICKS_HOST=adb-7405616477706025.5.azuredatabricks.net
-export DATABRICKS_TOKEN=<personal access token>
-streamlit run app.py
+For a standalone launch, set the hostname without the URL scheme for the SQL connector:
+
+```powershell
+$env:DATABRICKS_HOST = "adb-7405616477706025.5.azuredatabricks.net"
+$env:DATABRICKS_TOKEN = "<your-databricks-personal-access-token>"
+python -m streamlit run streamlit_app/app.py
 ```
 
-See `streamlit_app/README.md` for the full model version history (v1 through v5) - it's a real
-account of catching and fixing a saturated-probability bug, an inverted-direction bug from a
-mishandled categorical feature, and finally the data-volume problem underlying both, not just a
-single training run.
+Open `http://localhost:8501`. The app selects visitor-item pairs with `transaction_count = 0`, preselects up to 20,000 by cart/view activity, and sorts predictions from highest to lowest.
 
-## Cost notes / teardown
+It displays visitor name, views, cart additions, recency, previously purchased item count, item ID, availability, probability, and a quartile-based meaning label. A visitor may have bought other items while remaining an unconverted candidate for this item. Purchase-history count is context, not a model input.
 
-Billed while running: Event Hubs Standard (~$22/mo + throughput), Databricks compute (only while
-the job cluster or serverless warehouse is active), Function App Consumption (near-free at this
-volume), Storage (near-free at this volume). Databricks workspace and Unity Catalog metastore
-themselves are free.
+The app loads the highest registered version at startup and caches it for the process lifetime; restart after retraining. Candidate queries are cached for five minutes. Scoring runs locally after model download, without a Databricks Model Serving endpoint. See [streamlit_app/README.md](streamlit_app/README.md) for comparisons and model history.
 
-To tear everything down:
+## Purchase-propensity model
+
+[train_purchase_propensity.py](databricks/notebooks/train_purchase_propensity.py) loads the training table into pandas and uses four inputs:
+
+| Input | Meaning |
+|---|---|
+| `view_count` | Views for the visitor-item pair |
+| `addtocart_count` | Cart additions for the pair |
+| `days_since_last_interaction` | Recency relative to the latest dataset event |
+| `item_is_available` | Item availability; missing training values are filled as false |
+
+`label_purchased` is 1 when the pair has a recorded transaction, otherwise 0. `transaction_count` supplies the label and is excluded from inputs. `item_category_id` remains in the training table for reporting but is excluded from the model because numeric category IDs have no meaningful ordering.
+
+Training proceeds as follows:
+
+1. Creates a stratified **75% train / 25% test** split with `random_state=42`.
+2. Compares four Logistic Regression regularization settings, two Random Forest depths, Extra Trees, XGBoost, LightGBM, and Gaussian Naive Bayes: **10 candidates across 6 families**.
+3. Logs models, parameters, PR-AUC (average precision), ROC-AUC, positive-class metrics, probability spread, and low/high engagement stress scores to `/Shared/clickstream/purchase_propensity` in MLflow.
+4. Prefers candidates passing the spread/stress checks, then selects the highest PR-AUC. **If none pass, the code warns and falls back to the highest PR-AUC candidate anyway.**
+5. Rebuilds the winner inside `CalibratedClassifierCV(method="isotonic", cv=5)`, fits the training split, and prints predicted-versus-observed score bands on the test split.
+6. Registers the calibrated model as `clickstream.ml_models.purchase_propensity`. The calibration table is diagnostic output, rather than another registration gate.
+
+The recorded full-data winner was LightGBM: approximately **0.392 PR-AUC before calibration** and **0.395 afterward**. Later runs can choose another winner or produce different metrics. Local app requirements pin scikit-learn, LightGBM, and XGBoost to support serialized model loading.
+
+Features and labels aggregate historical interactions without a defined future purchase window or point-in-time feature cutoff. Evaluation uses a random pair-level split and reuses the test split for selection and final reporting. These results describe historical classification; prospective forecasting requires time-based feature/label windows and an independent final evaluation set. Synthetic refresh events also change the dataset's time reference and distribution.
+
+## Analytics and Salesforce
+
+**Power BI:** [powerbi/README.md](powerbi/README.md) describes the Databricks connection and Executive Overview / Item & Category Performance pages. [measures.dax](powerbi/measures.dax) provides funnel, conversion, visitor, item, and category measures. The report still needs authoring and connection in Power BI Desktop.
+
+**Salesforce:** Fivetran Activations reads `clickstream.gold.export_visitor_engagement_salesforce` and upserts standard `Account` records. `visitor_id` maps to unique external ID `Visitor_Id__c`; `account_name` supplies `Name`, and engagement columns map to eight custom fields. The documented schedule is daily at **09:00 UTC / 14:00 Pakistan time**. [salesforce/README.md](salesforce/README.md) contains setup, mappings, and initial results.
+
+The optional `--trigger-fivetran` flag needs `FIVETRAN_API_KEY`, `FIVETRAN_API_SECRET`, and `FIVETRAN_SYNC_ID`. It calls a standard connector force endpoint and has **not been verified for Activations** in this project. Pipeline success does not establish that this optional trigger worked; failures are logged and processing continues.
+
+## Infrastructure and recovery
+
+[infra/main.bicep](infra/main.bicep) defines Bronze storage, Function runtime storage, Event Hubs/Capture, Function App, telemetry, and role assignments. [infra/databricks.bicep](infra/databricks.bicep) adds the Databricks Premium workspace and managed-identity Access Connector.
+
+[terraform/](terraform/) contains recovery definitions for Azure resources, Function ZIP deployment, Databricks workspace, storage credential, external locations, catalog, six schemas, two production notebooks, and the scheduled Auto Loader job. It expects a workspace-assigned Unity Catalog metastore and a warehouse named `Serverless Starter Warehouse` to exist.
+
+[deploy.sh](deploy.sh) is a Bash recovery script requiring Terraform **1.5+**, Azure CLI, Databricks CLI, Python, and local dependencies. On Windows, use a Bash environment such as Git Bash with those tools available. Review the configuration before executing:
+
+```bash
+bash deploy.sh
 ```
-az group delete --name rg-clickstream-bronze --yes
-```
-This does not delete the Databricks-managed resource group (`clickstream-dbx-managed-...`) or the
-Unity Catalog metastore automatically - the workspace deletion (implied by the resource group
-delete) cleans up the managed RG, but the metastore is account-level and outlives any one
-workspace; delete the catalog/schemas from the Databricks account console if you want it gone too.
 
-## Disaster recovery: redeploy everything with Terraform
+The script runs Terraform with automatic approval, patches selected workspace/warehouse/job references, overwrites `.env` with a Function key and fresh PAT, then launches the pipeline. Its stale-catalog provisioner can delete the existing `clickstream` catalog with cascade semantics when that provisioner runs, including on fresh Terraform state. Use this workflow only for an intended rebuild.
 
-If the resource group (`rg-clickstream-bronze`) is ever deleted, `./deploy.sh` rebuilds the
-whole architecture with one command: Azure resources + the Function App code
-(`terraform/main.tf`, a port of `infra/main.bicep`), the Databricks workspace + Access Connector
-(`terraform/databricks_workspace.tf`, a port of `infra/databricks.bicep`), and the Unity Catalog
-layer that was originally set up by hand and never captured as code - storage credential,
-external locations, the `clickstream` catalog + its 6 schemas, the two production notebooks, and
-the Auto Loader job (`terraform/unity_catalog.tf`, `terraform/databricks_jobs.tf`). It then
-patches the handful of files that hardcode this deployment's identity (workspace host, SQL
-warehouse id, Auto Loader job id - `terraform/scripts/patch_files.py`) and runs
-`python run_pipeline.py` to repopulate every table and register a fresh model.
+Current recovery prerequisites and incomplete steps:
 
-```
-./deploy.sh
-```
+- The patch script updates workspace hosts, warehouse IDs, and the Auto Loader job ID, but leaves the ingestion URL in `run_pipeline.py`, the Bronze account in the Auto Loader notebook, and the training submission's user identity unchanged. Update them for a new deployment and upload the adjusted notebook.
+- Auto Loader requires the `clickstream.staging.checkpoints` volume; Terraform does not declare it. Create the volume before running ingestion jobs.
+- Recovery generates synthetic events only. Bootstrap item properties, categories, and required historical events separately.
+- Training remains an on-demand submission, rather than a Terraform-managed recurring job.
+- Fivetran connections, Salesforce fields/mappings, OAuth grants, and the Power BI report require separate configuration.
 
-**Deliberately destructive**: Unity Catalog's metastore is account/region-level, so the
-`clickstream` catalog can survive a resource-group deletion even though the storage it points at
-doesn't - `deploy.sh` always drops it (CASCADE) and recreates it fresh
-(`terraform/scripts/drop_stale_catalog.sh`), so the single command stays idempotent regardless
-of what state Unity Catalog was left in. Only run this when you actually mean to rebuild from
-scratch, not for routine use (`python run_pipeline.py` alone is correct day to day).
+Function-to-Event-Hubs and Databricks-to-ADLS access use managed identities. Function runtime storage still uses a storage account key, local dbt/Streamlit uses a PAT, and HTTP ingestion uses a Function key.
 
-**Not covered** - same as the original build, unchanged: the training job stays ad-hoc
-(`databricks jobs submit`, not a scheduled Terraform-managed job, matching the existing "retrain
-on demand" design) - and the Fivetran connector, Salesforce field mapping, and Power BI report
-all need a human to complete an OAuth grant in a browser, so no tool can one-command those; redo
-them manually after `deploy.sh` finishes, same as during the original build.
+## Troubleshooting and operations
 
-## What's built vs. spec'd
+| Symptom | Check |
+|---|---|
+| Databricks CLI missing | Add it to `PATH`; the orchestrator also checks `~/databricks-cli/databricks.exe` |
+| Jobs cannot authenticate | Run `az login`, confirm workspace access, host, and single-user identity |
+| dbt cannot connect | Check token expiry, warehouse availability, and `dbt/profiles.yml` |
+| Newly ingested data is absent | Wait for Capture; check Bronze paths and checkpoint volume, then rerun Auto Loader and dbt |
+| Streamlit shows an older model | Restart the process to clear the cached model |
+| Model loading fails locally | Install pinned dependencies in `streamlit_app/requirements.txt` |
+| Fivetran flag does not sync records | Inspect warnings and verify the Activation sync in Fivetran; the optional trigger is unverified |
 
-Everything in `Architecture.png` is complete. Bronze through `clickstream.gold` /
-`clickstream.ml_feature` / `clickstream.ml_training` / `clickstream.ml_models`, and the
-Fivetran -> Salesforce reverse ETL (Fivetran replacing the diagram's original Census), are all
-**built and verified live** - actual data sitting in actual tables and Salesforce records, not
-just configuration. See `salesforce/README.md` for the as-built reverse-ETL details.
+`databricks/notebooks/verify_counts.py` references an older `clickstream.raw` layout, and `test_purchase_propensity_model.py` is pinned to version 1 with an older feature list. Adapt them to current staging tables and the four model features before using them for validation.
 
-The one piece that's connection kit + spec rather than a finished artifact is the **Power BI
-dashboard**: Power BI Desktop is a GUI report authoring tool with no headless "build the
-visuals for me" API, so `powerbi/README.md` and `powerbi/measures.dax` give the exact connection
-details, DAX measures, and layout to build it in ~15-20 minutes rather than a delivered `.pbix`.
+The local pipeline has no continuous scheduler for dbt or training. Auto Loader and the documented Fivetran schedule operate independently. Event Hubs, storage, Function execution, job compute, and SQL warehouse activity incur cloud usage costs; stopping a local script does not remove deployed resources.
+
+## Further documentation
+
+- [Pipeline usage and recorded verification](PIPELINE.md)
+- [Streamlit application and model history](streamlit_app/README.md)
+- [Salesforce activation setup and mappings](salesforce/README.md)
+- [Power BI connection and dashboard specification](powerbi/README.md)
+- [Presentation](Clickstream_Lakehouse_Presentation_v3.pptx)
