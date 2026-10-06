@@ -79,7 +79,7 @@ try {
     if ($remoteHead.Count -ne 1 -or ($remoteHead[0] -split '\s+')[0] -ne $localHead) {
         throw 'Wiki push could not be verified against the remote branch.'
     }
-    Write-Output "Wiki verified: https://github.com/$Repository/wiki/Case-Study-Blog"
+    Write-Output "Wiki verified: https://github.com/$Repository/wiki"
     Write-Output "Previous wiki history backup: $bundlePath"
 } finally {
     Pop-Location

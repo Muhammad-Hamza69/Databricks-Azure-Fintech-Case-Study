@@ -6,13 +6,15 @@ Published pages: [Wiki Home](https://github.com/Muhammad-Hamza69/Databricks-Azur
 
 | File | Published role |
 |---|---|
-| [Home.md](Home.md) | Wiki landing page |
-| [Case-Study-Blog.md](Case-Study-Blog.md) | Complete Vivan technical case study |
+| [Home.md](Home.md) | Complete 24-section Vivan case study on the first wiki page |
+| [Case-Study-Blog.md](Case-Study-Blog.md) | The same complete case study at its dedicated blog URL |
 | [_Sidebar.md](_Sidebar.md) | Wiki navigation |
 | [_Footer.md](_Footer.md) | Shared wiki footer |
 | [publish.ps1](publish.ps1) | Publishes these four files to GitHub's separate wiki repository |
 
 The article describes Vivan's move from decentralized e-commerce data to a centralized Azure Databricks lakehouse and purchase-propensity modeling. It uses the provided reference blog's narrative structure, with this project's implementation details and recorded evidence.
+
+The wiki opens directly to the complete article, including its table of contents, architecture diagrams, model comparison, and recorded results. Keep `Home.md` and `Case-Study-Blog.md` aligned when editing the case study.
 
 ## First-time wiki initialization
 
